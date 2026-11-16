@@ -1,0 +1,25 @@
+[versions]
+kotlin = "2.3.21"
+spring-boot = "3.5.16"
+# pom 에 적히는 Jackson 최소 버전. Spring Boot 3.1.0 이 관리하는 버전과 같다.
+# 빌드/테스트는 Boot BOM 의 더 높은 버전으로 해석되고, Boot 3.1.0 BOM 으로 바꿔 돌리면 이 버전으로 검증된다.
+jackson-min = "2.15.0"
+
+[libraries]
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-min" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-min" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+assertj-core = { module = "org.assertj:assertj-core" }
+mockito-core = { module = "org.mockito:mockito-core" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
+dokka = { id = "org.jetbrains.dokka", version = "2.3.0" }

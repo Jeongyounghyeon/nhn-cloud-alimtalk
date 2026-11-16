@@ -1,0 +1,16 @@
+spring:
+  main:
+    web-application-type: none
+
+nhn:
+  alimtalk:
+    app-key: ${ALIMTALK_APP_KEY:}
+    secret-key: ${ALIMTALK_SECRET_KEY:}
+    default-sender-key: ${ALIMTALK_SENDER_KEY:}
+
+# 실제 API 호출용 수동 실행기 (TemplateDemo). 사용법은 TemplateDemo 의 javadoc 참고.
+demo:
+  enabled: false
+  action: list
+  template-code: TEST_01
+  allow-write: false

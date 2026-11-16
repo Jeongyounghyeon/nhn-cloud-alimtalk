@@ -1,0 +1,5 @@
+# JitPack 은 기본이 JDK 8 이라 17 을 지정한다.
+jdk:
+  - openjdk17
+install:
+  - ./gradlew :alimtalk-core:publishToMavenLocal :alimtalk-spring-boot-starter:publishToMavenLocal
