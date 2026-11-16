@@ -18,18 +18,28 @@ v1 범위는 템플릿 관리만이다. 발송과 발송 결과 조회는 포함
 ## 사용
 
 ```groovy
-implementation 'io.github.jeongyounghyeon.alimtalk:alimtalk-spring-boot-starter:<version>'
+implementation 'io.github.jeongyounghyeon.alimtalk:alimtalk-spring-boot-starter:0.1.0'
 ```
 
 ```xml
 <dependency>
   <groupId>io.github.jeongyounghyeon.alimtalk</groupId>
   <artifactId>alimtalk-spring-boot-starter</artifactId>
-  <version>&lt;version&gt;</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
-Spring 없이 쓰려면 `alimtalk-core` 만 의존한다. 배포 전에 로컬에서 시험하는 방법은 [RELEASING.md](RELEASING.md).
+Maven Central 에서 받는다(별도 저장소 설정이 필요 없다). Spring 없이 쓰려면 `alimtalk-core` 만 의존한다.
+릴리스 절차와 로컬 시험 방법은 [RELEASING.md](RELEASING.md).
+
+### 서명 검증
+
+릴리스 파일은 아래 키로 서명한다. 공개키는 `keyserver.ubuntu.com` 에서 받을 수 있다.
+
+```
+키 ID  : B63B0428B567CEDE
+지문   : F1A4 B4E9 C642 8A86 E7D7  7B18 B63B 0428 B567 CEDE
+```
 
 ```yaml
 nhn:
