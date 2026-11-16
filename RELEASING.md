@@ -8,7 +8,7 @@ Maven Central 에 공개된 버전은 삭제하거나 덮어쓸 수 없다. 문�
 | 단계 | 저장소 | 좌표 | 버전 |
 |---|---|---|---|
 | 1 | mavenLocal | `io.github.jeongyounghyeon.alimtalk:alimtalk-spring-boot-starter` | `0.1.0-local` |
-| 2 | JitPack | `com.github.jeongyounghyeon.nhn-cloud-alimtalk:alimtalk-spring-boot-starter` | 태그 이름 (`v0.1.0-rc.1`) |
+| 2 | JitPack | `com.github.Jeongyounghyeon.nhn-cloud-alimtalk:alimtalk-spring-boot-starter` | 태그 이름 (`v0.1.0-rc.1`) |
 | 3 | Maven Central | `io.github.jeongyounghyeon.alimtalk:alimtalk-spring-boot-starter` | `0.1.0` |
 
 ## 1. mavenLocal 로 사용처 시험
@@ -41,7 +41,7 @@ Maven 은 `<version>0.1.0-local</version>` 만 바꾸면 `~/.m2` 를 자동으�
 git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1
 ```
 
-빌드 상태와 로그는 `https://jitpack.io/#jeongyounghyeon/nhn-cloud-alimtalk` 에서 본다. JDK 17 설정은 `jitpack.yml`, 그룹과 버전은 JitPack 이 주는 환경 변수(`GROUP`, `ARTIFACT`, `VERSION`)로 맞춘다 (`build.gradle.kts`).
+빌드 상태와 로그는 `https://jitpack.io/#Jeongyounghyeon/nhn-cloud-alimtalk` 에서 본다. JDK 17 설정은 `jitpack.yml`, 그룹과 버전은 JitPack 이 주는 환경 변수(`GROUP`, `ARTIFACT`, `VERSION`)로 맞춘다 (`build.gradle.kts`).
 
 ```kotlin
 repositories {
@@ -49,7 +49,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("com.github.jeongyounghyeon.nhn-cloud-alimtalk:alimtalk-spring-boot-starter:v0.1.0-rc.1")
+    implementation("com.github.Jeongyounghyeon.nhn-cloud-alimtalk:alimtalk-spring-boot-starter:v0.1.0-rc.1")
 }
 ```
 
@@ -60,12 +60,15 @@ dependencies {
 ### 처음 한 번만
 
 1. **Central Portal 토큰**: Portal → Account → *Generate User Token*. 로그인 비밀번호가 아니라 이 토큰을 쓴다.
-2. **GPG 키 만들기** (본인 PC 에서):
+2. **GPG 키 만들기** (본인 PC 에서). 공개 키 서버는 한 번 올린 내용을 지울 수 없고 키의 사용자 ID(이름과 이메일)가 그대로 공개된다.
+   개인 이메일이 들어 있는 기존 키를 올리지 말고, GitHub noreply 주소로 릴리스 전용 키를 만든다.
    ```bash
-   gpg --full-generate-key                       # RSA 4096 권장, 만료일은 정책에 맞게
-   gpg --list-secret-keys --keyid-format long    # 키 ID 확인
+   gpg --quick-generate-key "Jeongyounghyeon <48899156+Jeongyounghyeon@users.noreply.github.com>" rsa4096 sign 2y
+   gpg --list-secret-keys --keyid-format long    # 새 키 ID 확인
    gpg --keyserver keyserver.ubuntu.com --send-keys <KEY_ID>   # 공개키 등록
    ```
+   Central 은 서명 키의 공개키를 keyserver.ubuntu.com, keys.openpgp.org, pgp.mit.edu 중 한 곳에서 찾는다.
+   키가 만료되면 새 릴리스를 서명할 수 없으므로 만료일을 기억해 둔다.
 3. **환경 변수** (CI 시크릿 또는 개인 셸. 저장소에 넣지 않는다):
    ```bash
    export ORG_GRADLE_PROJECT_mavenCentralUsername=<토큰 사용자 이름>
