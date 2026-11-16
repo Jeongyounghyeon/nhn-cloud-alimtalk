@@ -8,6 +8,21 @@ plugins {
     alias(libs.plugins.dokka) apply false
 }
 
+// 서명 키가 있을 때만 서명한다. 키가 없는 로컬 빌드와 publishToMavenLocal 은 서명 없이 동작한다.
+val hasSigningKey = listOf("signingInMemoryKey", "signing.gnupg.keyName", "signing.keyId")
+    .any { providers.gradleProperty(it).isPresent }
+
+// Maven Central 은 서명 없는 업로드를 거부한다. 키 설정을 빠뜨린 채 업로드까지 가지 않도록 시작 전에 막는다.
+gradle.taskGraph.whenReady {
+    val toCentral = allTasks.any { it.name.contains("MavenCentral") }
+    if (toCentral && !hasSigningKey) {
+        throw GradleException(
+            "서명 키가 설정되지 않았습니다. Maven Central 업로드 전에 ORG_GRADLE_PROJECT_signingInMemoryKey" +
+                "(와 ORG_GRADLE_PROJECT_signingInMemoryKeyPassword) 환경 변수를 설정하세요. RELEASING.md 참고.",
+        )
+    }
+}
+
 // JitPack 빌드에서는 com.github.<user>.<repo> 그룹과 태그 버전으로 발행해야 모듈을 찾는다.
 val onJitpack = System.getenv("JITPACK") == "true" || System.getenv("GROUP")?.startsWith("com.github") == true
 
@@ -55,10 +70,6 @@ configure(listOf(project(":alimtalk-core"), project(":alimtalk-spring-boot-start
     }
 
     val repoUrl = "https://github.com/jeongyounghyeon/nhn-cloud-alimtalk"
-    // 서명 키가 있을 때만 서명한다. 키가 없는 로컬 빌드와 publishToMavenLocal 은 서명 없이 동작한다.
-    val hasSigningKey = listOf("signingInMemoryKey", "signing.gnupg.keyName", "signing.keyId")
-        .any { providers.gradleProperty(it).isPresent }
-
     extensions.configure<MavenPublishBaseExtension> {
         publishToMavenCentral()
         if (hasSigningKey) signAllPublications()
