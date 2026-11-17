@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
@@ -49,6 +50,9 @@ configure(listOf(project(":alimtalk-core"), project(":alimtalk-spring-boot-start
         jvmToolchain(17)
         compilerOptions {
             freeCompilerArgs.add("-Xjsr305=strict")
+            // Kotlin 1.9 컴파일러를 쓰는 앱도 이 라이브러리를 읽을 수 있도록 메타데이터 버전을 낮춘다.
+            languageVersion.set(KotlinVersion.KOTLIN_1_9)
+            apiVersion.set(KotlinVersion.KOTLIN_1_9)
         }
         // 공개 API 는 명시적으로 선언하도록 강제해, 실수로 Kotlin 전용 타입이 노출되는 것을 막는다.
         explicitApi()

@@ -33,9 +33,80 @@ class AlimtalkAutoConfigurationTest {
     }
 
     @Test
-    fun `secret-key 가 없으면 등록하지 않는다`() {
-        runner.withPropertyValues("nhn.alimtalk.app-key=A")
-            .run { ctx -> assertThat(ctx).doesNotHaveBean(AlimtalkTemplateClient::class.java) }
+    fun `둘 다 빈 값이면 기동에 성공하고 빈을 만들지 않는다`() {
+        runner.withPropertyValues("nhn.alimtalk.app-key=", "nhn.alimtalk.secret-key=")
+            .run { ctx ->
+                assertThat(ctx).hasNotFailed()
+                assertThat(ctx).doesNotHaveBean(AlimtalkTemplateClient::class.java)
+            }
+    }
+
+    @Test
+    fun `환경 변수가 없을 때 빈 값을 두는 플레이스홀더 설정으로도 기동에 성공한다`() {
+        // application.yml 의 `app-key: ${NHN_ALIMTALK_APP_KEY:}` 와 같은 형태
+        runner.withPropertyValues(
+            "nhn.alimtalk.app-key=\${NHN_ALIMTALK_APP_KEY_NOT_DEFINED:}",
+            "nhn.alimtalk.secret-key=\${NHN_ALIMTALK_SECRET_KEY_NOT_DEFINED:}",
+            "nhn.alimtalk.base-url=\${NHN_ALIMTALK_BASE_URL_NOT_DEFINED:}",
+            "nhn.alimtalk.default-sender-key=\${NHN_ALIMTALK_SENDER_KEY_NOT_DEFINED:}",
+        ).run { ctx ->
+            assertThat(ctx).hasNotFailed()
+            assertThat(ctx).doesNotHaveBean(AlimtalkTemplateClient::class.java)
+        }
+    }
+
+    @Test
+    fun `공백만 있는 값도 빈 값으로 본다`() {
+        runner.withPropertyValues("nhn.alimtalk.app-key=   ", "nhn.alimtalk.secret-key=   ")
+            .run { ctx ->
+                assertThat(ctx).hasNotFailed()
+                assertThat(ctx).doesNotHaveBean(AlimtalkTemplateClient::class.java)
+            }
+    }
+
+    @Test
+    fun `한쪽만 설정되면 두 키를 함께 설정하라는 메시지로 기동이 실패한다`() {
+        val together = "nhn.alimtalk.app-key and nhn.alimtalk.secret-key must be set together"
+        // secret-key 가 없음, secret-key 가 빈 값, app-key 가 빈 값
+        listOf(
+            arrayOf("nhn.alimtalk.app-key=A") to "nhn.alimtalk.secret-key",
+            arrayOf("nhn.alimtalk.app-key=A", "nhn.alimtalk.secret-key=") to "nhn.alimtalk.secret-key",
+            arrayOf("nhn.alimtalk.app-key=", "nhn.alimtalk.secret-key=S") to "nhn.alimtalk.app-key",
+            arrayOf("nhn.alimtalk.secret-key=S") to "nhn.alimtalk.app-key",
+        ).forEach { (props, blankKey) ->
+            runner.withPropertyValues(*props).run { ctx ->
+                assertThat(ctx).hasFailed()
+                assertThat(ctx).failure.rootCause()
+                    .hasMessageContaining(together)
+                    .hasMessageContaining("but $blankKey is blank or missing")
+            }
+        }
+    }
+
+    @Test
+    fun `base-url 이 빈 값이면 기본값을 쓰고 default-sender-key 가 빈 값이면 설정하지 않은 것으로 본다`() {
+        runner.withPropertyValues(
+            "nhn.alimtalk.app-key=A",
+            "nhn.alimtalk.secret-key=S",
+            "nhn.alimtalk.base-url=",
+            "nhn.alimtalk.default-sender-key=",
+        ).run { ctx ->
+            assertThat(ctx).hasNotFailed()
+            assertThat(ctx).hasSingleBean(AlimtalkTemplateClient::class.java)
+            val props = ctx.getBean(AlimtalkProperties::class.java)
+            assertThat(props.baseUrl).isEqualTo(AlimtalkClientConfig.DEFAULT_BASE_URL)
+            assertThat(props.defaultSenderKey).isNull()
+        }
+    }
+
+    @Test
+    fun `키가 비어 있어도 사용자가 정의한 빈은 그대로 쓸 수 있다`() {
+        runner.withPropertyValues("nhn.alimtalk.app-key=", "nhn.alimtalk.secret-key=")
+            .withUserConfiguration(CustomClientConfig::class.java)
+            .run { ctx ->
+                assertThat(ctx).hasNotFailed()
+                assertThat(ctx.getBean(AlimtalkTemplateClient::class.java)).isSameAs(CustomClientConfig.CLIENT)
+            }
     }
 
     @Test

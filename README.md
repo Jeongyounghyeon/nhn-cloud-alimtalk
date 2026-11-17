@@ -44,15 +44,30 @@ Maven Central 에서 받는다(별도 저장소 설정이 필요 없다). Spring
 ```yaml
 nhn:
   alimtalk:
-    app-key: ${ALIMTALK_APP_KEY}
-    secret-key: ${ALIMTALK_SECRET_KEY}
-    default-sender-key: ${ALIMTALK_SENDER_KEY}   # 선택. 있으면 senderKey 인자를 생략할 수 있다
+    app-key: ${ALIMTALK_APP_KEY:}
+    secret-key: ${ALIMTALK_SECRET_KEY:}
+    default-sender-key: ${ALIMTALK_SENDER_KEY:}   # 선택. 있으면 senderKey 인자를 생략할 수 있다
     # base-url: https://kakaotalk-bizmessage.api.nhncloudservice.com
     # connect-timeout: 3s
     # read-timeout: 10s
 ```
 
-`app-key` 와 `secret-key` 가 모두 있을 때만 빈이 등록된다. 같은 타입의 빈을 직접 정의하면 그쪽이 우선한다.
+| `app-key` / `secret-key` | 동작 |
+|---|---|
+| 둘 다 없거나 비어 있음 (`${ALIMTALK_APP_KEY:}` 처럼 환경 변수가 없을 때의 빈 값 포함) | 클라이언트를 만들지 않고 **앱은 정상 기동**한다(INFO 로그 한 줄) |
+| 둘 다 값이 있음 | 클라이언트 빈을 등록한다 |
+| 한쪽만 값이 있음 | 설정 오류로 보고 **기동을 실패**시킨다. 두 키를 함께 설정하라는 메시지가 나온다 |
+
+`base-url` 이 비어 있으면 기본값을, `default-sender-key` 가 비어 있으면 설정하지 않은 것으로 본다.
+같은 타입의 빈을 직접 정의하면 그쪽이 우선한다.
+
+키가 없는 환경이 있다면(로컬, 테스트 등) 클라이언트를 선택적으로 주입받는다.
+
+```java
+TemplateService(ObjectProvider<AlimtalkTemplateClient> client) {
+    this.client = client.getIfAvailable();   // 키가 없으면 null
+}
+```
 
 ```java
 @Service
@@ -143,4 +158,4 @@ AlimtalkTemplateClient client = new JdkHttpAlimtalkTemplateClient(
 
 실제 호출에는 `ALIMTALK_APP_KEY`, `ALIMTALK_SECRET_KEY`, `ALIMTALK_SENDER_KEY` 환경 변수가 필요하다.
 
-JDK 17, Gradle wrapper 8.14.3, Kotlin 2.3. 빌드 기준은 Spring Boot 3.5 이고, 호환성 확인을 위해 `gradle/libs.versions.toml` 의 `spring-boot` 를 `3.1.0` 으로 바꿔 전체 빌드와 테스트를 돌려 볼 수 있다.
+JDK 17, Gradle wrapper 8.14.3. 컴파일러는 Kotlin 2.3 이고, Kotlin 1.9 이상 컴파일러를 쓰는 앱에서도 읽을 수 있도록 `languageVersion`/`apiVersion` 을 1.9 로 빌드한다(stdlib 1.9.25). 빌드 기준은 Spring Boot 3.5 이고, 호환성 확인을 위해 `gradle/libs.versions.toml` 의 `spring-boot` 를 `3.1.0` 으로 바꿔 전체 빌드와 테스트를 돌려 볼 수 있다.
