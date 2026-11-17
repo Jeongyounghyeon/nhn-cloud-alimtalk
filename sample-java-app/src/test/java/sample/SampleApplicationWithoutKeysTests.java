@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * 키가 비어 있는 환경(로컬, 테스트, 스테이지)에서도 앱이 기동하고, 클라이언트는 선택적으로 주입받을 수 있는지 확인한다.
- * application.yml 의 `app-key: ${ALIMTALK_APP_KEY:}` 처럼 환경 변수가 없을 때 빈 값이 되는 설정과 같은 상황이다.
+ * 환경 변수가 없거나 `app-key: ${MY_KEY:}` 처럼 빈 값이 되는 설정과 같은 상황이다.
  */
 @SpringBootTest(properties = {"nhn.alimtalk.app-key=", "nhn.alimtalk.secret-key="})
 class SampleApplicationWithoutKeysTests {

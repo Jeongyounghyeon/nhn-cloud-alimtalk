@@ -11,7 +11,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata
 /**
  * `nhn.alimtalk.app-key` 와 `nhn.alimtalk.secret-key` 중 **하나라도 값(공백이 아닌 문자)이 있을 때만** 일치한다.
  *
- * `@ConditionalOnProperty` 는 빈 문자열도 "있음"으로 보기 때문에, `app-key: ${ALIMTALK_APP_KEY:}` 처럼
+ * `@ConditionalOnProperty` 는 빈 문자열도 "있음"으로 보기 때문에, `app-key: ${MY_KEY:}` 처럼
  * 환경 변수가 없을 때 빈 값을 두는 흔한 설정에서 빈 생성이 시작되었다가 실패했다.
  * 둘 다 비었거나 없으면 클라이언트를 만들지 않고, 하나만 있으면 일치시켜서 빈 생성 단계에서
  * 두 키를 함께 설정하라는 메시지로 실패시킨다.

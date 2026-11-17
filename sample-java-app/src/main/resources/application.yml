@@ -2,11 +2,9 @@ spring:
   main:
     web-application-type: none
 
-nhn:
-  alimtalk:
-    app-key: ${ALIMTALK_APP_KEY:}
-    secret-key: ${ALIMTALK_SECRET_KEY:}
-    default-sender-key: ${ALIMTALK_SENDER_KEY:}
+# 키는 yml 에 적지 않고 환경 변수로 넣는다. Spring Boot 가 아래 이름을 nhn.alimtalk.* 로 자동 연결한다.
+#   NHN_ALIMTALK_APP_KEY, NHN_ALIMTALK_SECRET_KEY, NHN_ALIMTALK_DEFAULT_SENDER_KEY(선택)
+# 환경 변수가 없으면 클라이언트 빈 없이 정상 기동한다.
 
 # 실제 API 호출용 수동 실행기 (TemplateDemo). 사용법은 TemplateDemo 의 javadoc 참고.
 demo:

@@ -41,20 +41,47 @@ Maven Central 에서 받는다(별도 저장소 설정이 필요 없다). Spring
 지문   : F1A4 B4E9 C642 8A86 E7D7  7B18 B63B 0428 B567 CEDE
 ```
 
+키는 **환경 변수**로 넣는 것을 권한다. 이름은 프로퍼티 이름에서 정해지며(Spring Boot 의 relaxed binding),
+yml 에 따로 적을 필요가 없다.
+
+```bash
+export NHN_ALIMTALK_APP_KEY=...
+export NHN_ALIMTALK_SECRET_KEY=...
+export NHN_ALIMTALK_DEFAULT_SENDER_KEY=...   # 선택. 있으면 senderKey 인자를 생략할 수 있다
+```
+
+비밀이 아닌 옵션은 `application.yml` 에 둔다.
+
 ```yaml
 nhn:
   alimtalk:
-    app-key: ${ALIMTALK_APP_KEY:}
-    secret-key: ${ALIMTALK_SECRET_KEY:}
-    default-sender-key: ${ALIMTALK_SENDER_KEY:}   # 선택. 있으면 senderKey 인자를 생략할 수 있다
+    # default-sender-key: ...
     # base-url: https://kakaotalk-bizmessage.api.nhncloudservice.com
     # connect-timeout: 3s
     # read-timeout: 10s
 ```
 
+| 프로퍼티 | 환경 변수 |
+|---|---|
+| `nhn.alimtalk.app-key` | `NHN_ALIMTALK_APP_KEY` |
+| `nhn.alimtalk.secret-key` | `NHN_ALIMTALK_SECRET_KEY` |
+| `nhn.alimtalk.default-sender-key` | `NHN_ALIMTALK_DEFAULT_SENDER_KEY` |
+| `nhn.alimtalk.read-timeout` | `NHN_ALIMTALK_READ_TIMEOUT` |
+
+라이브러리가 읽는 환경 변수 이름은 위뿐이다. 다른 이름(예: `MY_NHN_KEY`)을 쓰려면 yml 에서 직접 연결한다.
+
+```yaml
+nhn:
+  alimtalk:
+    app-key: ${MY_NHN_KEY:}   # 환경 변수가 없으면 빈 값(클라이언트 없음)
+```
+
+기본값 없이 `${MY_NHN_KEY}` 만 쓰고 환경 변수가 없으면, Spring Boot 는 치환하지 못한 `${MY_NHN_KEY}` 를 글자 그대로
+값으로 넘긴다. 이 라이브러리는 이런 값을 감지해서 **기동을 실패**시키고 원인을 알려 준다.
+
 | `app-key` / `secret-key` | 동작 |
 |---|---|
-| 둘 다 없거나 비어 있음 (`${ALIMTALK_APP_KEY:}` 처럼 환경 변수가 없을 때의 빈 값 포함) | 클라이언트를 만들지 않고 **앱은 정상 기동**한다(INFO 로그 한 줄) |
+| 둘 다 없거나 비어 있음 (`${MY_KEY:}` 처럼 환경 변수가 없을 때의 빈 값 포함) | 클라이언트를 만들지 않고 **앱은 정상 기동**한다(INFO 로그 한 줄) |
 | 둘 다 값이 있음 | 클라이언트 빈을 등록한다 |
 | 한쪽만 값이 있음 | 설정 오류로 보고 **기동을 실패**시킨다. 두 키를 함께 설정하라는 메시지가 나온다 |
 
@@ -156,6 +183,6 @@ AlimtalkTemplateClient client = new JdkHttpAlimtalkTemplateClient(
 
 로컬 저장소(`~/.m2`)에 발행해 다른 프로젝트에서 시험하려면 `./gradlew publishToMavenLocal -Pversion=0.1.0-local`.
 
-실제 호출에는 `ALIMTALK_APP_KEY`, `ALIMTALK_SECRET_KEY`, `ALIMTALK_SENDER_KEY` 환경 변수가 필요하다.
+실제 호출에는 `NHN_ALIMTALK_APP_KEY`, `NHN_ALIMTALK_SECRET_KEY`, `NHN_ALIMTALK_DEFAULT_SENDER_KEY` 환경 변수가 필요하다.
 
 JDK 17, Gradle wrapper 8.14.3. 컴파일러는 Kotlin 2.3 이고, Kotlin 1.9 이상 컴파일러를 쓰는 앱에서도 읽을 수 있도록 `languageVersion`/`apiVersion` 을 1.9 로 빌드한다(stdlib 1.9.25). 빌드 기준은 Spring Boot 3.5 이고, 호환성 확인을 위해 `gradle/libs.versions.toml` 의 `spring-boot` 를 `3.1.0` 으로 바꿔 전체 빌드와 테스트를 돌려 볼 수 있다.

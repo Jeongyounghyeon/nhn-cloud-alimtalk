@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
+import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.net.InetAddress
@@ -80,6 +81,67 @@ class AlimtalkAutoConfigurationTest {
                     .hasMessageContaining(together)
                     .hasMessageContaining("but $blankKey is blank or missing")
             }
+        }
+    }
+
+    @Test
+    fun `치환되지 않은 플레이스홀더가 남은 값은 기동을 실패시키고 메시지에 플레이스홀더만 싣는다`() {
+        listOf(
+            arrayOf("nhn.alimtalk.app-key=\${NHN_UNDEFINED_APP}", "nhn.alimtalk.secret-key=S") to "nhn.alimtalk.app-key",
+            arrayOf("nhn.alimtalk.app-key=A", "nhn.alimtalk.secret-key=\${NHN_UNDEFINED_SECRET}") to "nhn.alimtalk.secret-key",
+            arrayOf("nhn.alimtalk.app-key=A", "nhn.alimtalk.secret-key=S", "nhn.alimtalk.base-url=\${NHN_UNDEFINED_URL}") to "nhn.alimtalk.base-url",
+            arrayOf("nhn.alimtalk.app-key=A", "nhn.alimtalk.secret-key=S", "nhn.alimtalk.default-sender-key=\${NHN_UNDEFINED_SENDER}") to "nhn.alimtalk.default-sender-key",
+        ).forEach { (props, property) ->
+            runner.withPropertyValues(*props).run { ctx ->
+                assertThat(ctx).hasFailed()
+                assertThat(ctx).failure.rootCause()
+                    .hasMessageContaining("$property has an unresolved placeholder")
+                    .hasMessageContaining("\${VAR:}")
+            }
+        }
+        // 값의 일부만 플레이스홀더여도 막고, 메시지에는 값 전체(앞의 비밀 값)를 싣지 않는다.
+        runner.withPropertyValues("nhn.alimtalk.app-key=SECRETPART\${NHN_UNDEFINED_APP}", "nhn.alimtalk.secret-key=S")
+            .run { ctx ->
+                assertThat(ctx).hasFailed()
+                assertThat(ctx).failure.rootCause().message().contains("\${NHN_UNDEFINED_APP}").doesNotContain("SECRETPART")
+            }
+    }
+
+    @Test
+    fun `기본값이 있는 플레이스홀더는 치환된 값을 쓰고 달러 문자가 있는 키는 막지 않는다`() {
+        runner.withPropertyValues("nhn.alimtalk.app-key=\${NHN_UNDEFINED_APP:fallback-key}", "nhn.alimtalk.secret-key=ab\$cd")
+            .run { ctx ->
+                assertThat(ctx).hasNotFailed()
+                assertThat(ctx).hasSingleBean(AlimtalkTemplateClient::class.java)
+                assertThat(ctx.getBean(AlimtalkProperties::class.java).appKey).isEqualTo("fallback-key")
+            }
+    }
+
+    @Test
+    fun `환경 변수 이름은 프로퍼티 이름에서 정해지고 yml 없이 환경 변수만으로 설정된다`() {
+        runner.withInitializer { ctx ->
+            TestPropertyValues.of(
+                "NHN_ALIMTALK_APP_KEY=A",
+                "NHN_ALIMTALK_SECRET_KEY=S",
+                "NHN_ALIMTALK_DEFAULT_SENDER_KEY=SK",
+                "NHN_ALIMTALK_READ_TIMEOUT=30s",
+            ).applyTo(ctx.environment, TestPropertyValues.Type.SYSTEM_ENVIRONMENT)
+        }.run { ctx ->
+            assertThat(ctx).hasSingleBean(AlimtalkTemplateClient::class.java)
+            val props = ctx.getBean(AlimtalkProperties::class.java)
+            assertThat(props.defaultSenderKey).isEqualTo("SK")
+            assertThat(props.readTimeout.seconds).isEqualTo(30)
+        }
+    }
+
+    @Test
+    fun `NHN 접두사가 없는 환경 변수는 읽지 않는다`() {
+        runner.withInitializer { ctx ->
+            TestPropertyValues.of("ALIMTALK_APP_KEY=A", "ALIMTALK_SECRET_KEY=S")
+                .applyTo(ctx.environment, TestPropertyValues.Type.SYSTEM_ENVIRONMENT)
+        }.run { ctx ->
+            assertThat(ctx).hasNotFailed()
+            assertThat(ctx).doesNotHaveBean(AlimtalkTemplateClient::class.java)
         }
     }
 
